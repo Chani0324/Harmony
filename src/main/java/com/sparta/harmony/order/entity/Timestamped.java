@@ -23,7 +23,7 @@ public abstract class Timestamped {
     private LocalDateTime createdAt;
 
     @CreatedBy
-    @Column(length = 100, name = "created_by", nullable = false, updatable = false)
+    @Column(length = 100, name = "created_by", updatable = false)
     private String createdBy;
 
     @LastModifiedDate

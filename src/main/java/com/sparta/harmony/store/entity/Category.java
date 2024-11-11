@@ -26,9 +26,11 @@ public class Category extends Timestamped {
     private List<StoreCategory> storeCategories = new ArrayList<>();
 
     @Builder
-    public Category(UUID storeCategoryId, String categoryName, List<StoreCategory> storeCategories) {
-        this.storeCategoryId = storeCategoryId;
+    public Category(String categoryName) {
         this.categoryName = categoryName;
-        this.storeCategories = storeCategories;
+    }
+
+    public void updateCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 }
