@@ -9,7 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class ReqResLoggingFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(ReqResLoggingFilter.class);
@@ -58,6 +60,14 @@ public class ReqResLoggingFilter extends OncePerRequestFilter {
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT); // 줄바꿈 및 들여쓰기 활성화
 
         String responseBody = new String(contentCachingResponseWrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
+
+        if (responseBody.isEmpty()) {
+            logger.info("Request body is empty");
+            MDC.clear();
+
+            return;
+        }
+
         Object json = objectMapper.readValue(responseBody, Object.class); // JSON 문자열을 객체로 변환
         String prettyResponseBody = objectMapper.writeValueAsString(json); // 다시 포맷된 JSON 문자열로 변환
 

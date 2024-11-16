@@ -21,7 +21,6 @@ public class Address {
     @Column(length = 200)
     private String address;
 
-    @Column(length = 200, name = "detail_address")
     private String detailAddress;
 
     @Builder
