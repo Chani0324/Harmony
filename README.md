@@ -18,11 +18,11 @@
 
 ## 기술 스택
 
-Spring Boot
-PostgreSQL
-Amazon EC2
-Amazon RDS
-Google Gemini
+- Spring Boot
+- PostgreSQL
+- Amazon EC2
+- Amazon RDS
+- Google Gemini
 
 
 ## 어려웠던 점
