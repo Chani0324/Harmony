@@ -77,25 +77,21 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<OrderResponseDto> getOrders(User user, int page, int size, String sortBy, boolean isAsc) {
         Pageable pageable = getPageable(page, size, sortBy, isAsc);
-        Page<Order> orderList;
 
         Role userRoleEnum = user.getRole();
 
-        if (userRoleEnum.equals(Role.USER) || userRoleEnum.equals(Role.OWNER)) {
-            orderList = orderRepository.findAllByUserAndDeletedFalse(user, pageable);
-        } else {
-            orderList = orderRepository.findAllByDeletedFalse(pageable);
-        }
+        Page<Order> orderList = isUserOrOwner(userRoleEnum)
+                ? orderRepository.findAllByUserAndDeletedFalse(user, pageable)
+                : orderRepository.findAllByDeletedFalse(pageable);
 
         return orderList.map(OrderResponseDto::fromOrder);
     }
 
     @Transactional(readOnly = true)
     public Page<OrderResponseDto> getOrdersByStoreId(UUID storeId, int page, int size,
-                                                   String sortBy, boolean isAsc) {
+                                                     String sortBy, boolean isAsc) {
         Pageable pageable = getPageable(page, size, sortBy, isAsc);
-        Page<Order> orderList;
-        orderList = orderRepository.findOrderByStoreIdAndDeletedFalse(storeId, pageable);
+        Page<Order> orderList = orderRepository.findOrderByStoreIdAndDeletedFalse(storeId, pageable);
 
         return orderList.map(OrderResponseDto::fromOrder);
     }
@@ -104,7 +100,7 @@ public class OrderService {
         Role userRoleEnum = user.getRole();
         Order order;
 
-        if (userRoleEnum.equals(Role.USER) || userRoleEnum.equals(Role.OWNER)) {
+        if (isUserOrOwner(userRoleEnum)) {
             order = orderRepository.findByOrderIdAndUserAndDeletedFalse(orderId, user).orElseThrow(()
                     -> new IllegalArgumentException("고객님의 주문 내용이 있는지 확인해주세요."));
         } else {
@@ -139,7 +135,7 @@ public class OrderService {
         Role userRoleEnum = user.getRole();
         String email = user.getEmail();
 
-        if (userRoleEnum.equals(Role.USER)) {
+        if (isUser(userRoleEnum)) {
             UUID userId = user.getUserId();
             UUID orderUserId = order.getUser().getUserId();
 
@@ -148,6 +144,7 @@ public class OrderService {
             }
         }
         List<OrderMenu> orderMenuList = orderMenuRepository.findAllByOrder(order);
+
         for (OrderMenu orderMenu : orderMenuList) {
             orderMenu.softDelete(email);
         }
@@ -158,6 +155,14 @@ public class OrderService {
         orderMenuRepository.saveAll(orderMenuList);
 
         return OrderResponseDto.fromOrder(order);
+    }
+
+    private boolean isUser(Role userRoleEnum) {
+        return userRoleEnum.equals(Role.USER);
+    }
+
+    private boolean isUserOrOwner(Role userRoleEnum) {
+        return isUser(userRoleEnum) || userRoleEnum.equals(Role.OWNER);
     }
 
     private Pageable getPageable(int page, int size, String sortBy, boolean isAsc) {
