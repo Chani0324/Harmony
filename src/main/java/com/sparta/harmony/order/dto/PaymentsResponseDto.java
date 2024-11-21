@@ -4,18 +4,15 @@ package com.sparta.harmony.order.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sparta.harmony.order.entity.Payments;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
 @Schema(description = "결재 응답 Dto")
 @Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PaymentsResponseDto {
 
     @Schema(description = "결재 내역 ID", example = "3e995146-5a1d-4fae-b983-7782cdde8660")

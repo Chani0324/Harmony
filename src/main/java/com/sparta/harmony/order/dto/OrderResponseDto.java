@@ -5,10 +5,7 @@ import com.sparta.harmony.order.entity.Order;
 import com.sparta.harmony.order.entity.OrderStatusEnum;
 import com.sparta.harmony.order.entity.OrderTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,9 +14,9 @@ import java.util.UUID;
 
 @Schema(description = "주문 성공 응답 Dto")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderResponseDto {
 
     @Schema(description = "주문 ID", example = "fd7e91c0-8a1c-4706-9eb3-0b0ce4d5184b")

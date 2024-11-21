@@ -13,8 +13,8 @@ import java.util.UUID;
 @Schema(description = "상세 결재 응답 Dto")
 @Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PaymentsDetailResponseDto {
 
     @Schema(description = "결재 내역 ID", example = "3e995146-5a1d-4fae-b983-7782cdde8660")
