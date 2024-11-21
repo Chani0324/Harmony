@@ -25,15 +25,15 @@ public class SuccessResponseHandler {
 
     @ResponseBody
     public <T> ResponseEntity<ApiPageResponseDto<T>> handlePageSuccess(HttpStatus status, String message, Page<T> page) {
-        List<T> content = page.getContent(); // 현재 페이지의 데이터
+        List<T> content = page.getContent();
 
         ApiPageResponseDto<T> response = new ApiPageResponseDto<>(
                 status.value(),
                 message,
-                page.getNumber(), // 현재 페이지 번호
-                page.getSize(), // 페이지 크기
-                page.getTotalElements(), // 전체 요소 수
-                page.getTotalPages(), // 전체 페이지 수
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
                 content
         );
         return ResponseEntity.status(status).body(response);

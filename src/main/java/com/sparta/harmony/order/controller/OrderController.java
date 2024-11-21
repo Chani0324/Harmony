@@ -32,7 +32,6 @@ public class OrderController {
     private final OrderService orderService;
     private final SuccessResponseHandler successResponseHandler;
 
-    // user 이상 사용 가능.
     @Operation(summary = "주문 생성", description = "주문을 생성할 때 사용하는 API")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "주문 요청이 성공적으로 접수된 경우"),
@@ -48,7 +47,6 @@ public class OrderController {
         return successResponseHandler.handleSuccess(HttpStatus.CREATED, "주문이 성공적으로 접수되었습니다.", orderResponseDto);
     }
 
-    // user 이상 사용 가능
     @Operation(summary = "주문 취소(soft delete)", description = "주문을 취소할 때 사용하는 API. USER의 경우 자신의 주문만 취소 가능.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "주문 삭제가 성공적으로 이뤄진경우", content = @Content(schema = @Schema(type = "string", example = "31a87383-f1ca-4c2d-8a9a-b10cb192495b"), mediaType = "application/json")),
@@ -64,7 +62,6 @@ public class OrderController {
         return successResponseHandler.handleSuccess(HttpStatus.OK, "주문이 성공적으로 삭제되었습니다.", orderResponseDto);
     }
 
-    // user 이상 사용 가능.
     @Operation(summary = "주문 조회", description = "주문을 조회할 때 사용하는 API")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "주문 조회가 성공적으로 이뤄진 경우"),
@@ -84,7 +81,6 @@ public class OrderController {
         return successResponseHandler.handlePageSuccess(HttpStatus.OK, "조회 완료", orderResponseDto);
     }
 
-    // user 이상 사용가능
     @Operation(summary = "주문 상세 조회", description = "주문 상세 조회할 때 사용하는 API")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "주문 조회가 성공적으로 이뤄진 경우"),
@@ -100,7 +96,6 @@ public class OrderController {
         return successResponseHandler.handleSuccess(HttpStatus.OK, "조회가 완료되었습니다.", orderDetailResponseDto);
     }
 
-    // owner 이상만 사용 가능
     @Operation(summary = "특정 가게 주문 조회", description = "특정 가게의 주문을 조회할 때 사용하는 API. Owner 이상 사용 가능")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "주문 조회가 성공적으로 이뤄진 경우"),
@@ -121,7 +116,6 @@ public class OrderController {
         return successResponseHandler.handlePageSuccess(HttpStatus.OK, "조회가 완료되었습니다.", orderResponseDto);
     }
 
-    // owner 이상 사용 가능
     @Operation(summary = "주문 상태 업데이트", description = "특정 주문의 주문 상태를 수정할 때 사용하는 API. Owner 이상 사용 가능")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "수정이 성공적으로 이뤄진 경우"),

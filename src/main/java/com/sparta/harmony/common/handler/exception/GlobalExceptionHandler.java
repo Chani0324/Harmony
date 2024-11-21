@@ -16,9 +16,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RestApiException> illegalArgumentExceptionHandler(IllegalArgumentException ex) {
         RestApiException restApiException = new RestApiException(ex.getMessage(), HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(
-                // HTTP body
                 restApiException,
-                // HTTP status code
                 HttpStatus.BAD_REQUEST
         );
     }
@@ -27,9 +25,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RestApiException> nullPointerExceptionHandler(NullPointerException ex) {
         RestApiException restApiException = new RestApiException(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
         return new ResponseEntity<>(
-                // HTTP body
                 restApiException,
-                // HTTP status code
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
@@ -38,9 +34,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RestApiException> ArgumentNotValidException(MethodArgumentNotValidException ex) {
         RestApiException restApiException = new RestApiException(ex.getMessage(), HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(
-                // HTTP body
                 restApiException,
-                // HTTP status code
                 HttpStatus.BAD_REQUEST
         );
     }

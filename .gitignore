@@ -41,4 +41,4 @@ out/
 .vscode/
 
 
-src/main/resources/application-secret.properties
+src/main/resources/application-secret.properties!/.github/workflows/deploy.yml

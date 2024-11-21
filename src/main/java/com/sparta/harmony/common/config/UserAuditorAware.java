@@ -18,6 +18,6 @@ public class UserAuditorAware implements AuditorAware<String> {
         if (authentication.isAuthenticated() && !authentication.getAuthorities().toString().equals("[ROLE_ANONYMOUS]")) {
             return Optional.of(((UserDetailsImpl) authentication.getPrincipal()).getUser().getEmail());
         }
-        return Optional.of("SYSTEM"); // 기본값
+        return Optional.of("SYSTEM");
     }
 }
