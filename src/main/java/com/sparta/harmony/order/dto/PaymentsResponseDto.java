@@ -37,11 +37,13 @@ public class PaymentsResponseDto {
     @Schema(description = "결재 총액", example = "124000")
     private int amount;
 
-    public PaymentsResponseDto(Payments payments) {
-        this.paymentsId = payments.getPaymentsId();
-        this.storeId = payments.getOrder().getStore().getStoreId();
-        this.storeName = payments.getOrder().getStore().getStoreName();
-        this.orderId = payments.getOrder().getOrderId();
-        this.amount = payments.getAmount();
+    public static PaymentsResponseDto fromPayments(Payments payments) {
+        return PaymentsResponseDto.builder()
+                .paymentsId(payments.getPaymentsId())
+                .storeId(payments.getOrder().getStore().getStoreId())
+                .storeName(payments.getOrder().getStore().getStoreName())
+                .orderId(payments.getOrder().getOrderId())
+                .amount(payments.getAmount())
+                .build();
     }
 }

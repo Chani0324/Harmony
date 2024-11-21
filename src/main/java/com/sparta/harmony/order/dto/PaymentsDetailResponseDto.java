@@ -46,16 +46,18 @@ public class PaymentsDetailResponseDto {
     @Schema(description = "주문 메뉴 리스트")
     private List<OrderMenuListResponseDto> orderMenuList = new ArrayList<>();
 
-    public PaymentsDetailResponseDto(Payments payments) {
-        this.paymentsId = payments.getPaymentsId();
-        this.storeId = payments.getOrder().getStore().getStoreId();
-        this.orderId = payments.getOrder().getOrderId();
-        this.email = payments.getUser().getEmail();
-        this.storeName = payments.getOrder().getStore().getStoreName();
-        this.orderMenuList = payments.getOrder().getOrderMenuList().stream()
-                .map(OrderMenuListResponseDto::new)
-                .toList();
-        this.amount = payments.getAmount();
-        this.createdAt = payments.getCreatedAt();
+    public static PaymentsDetailResponseDto fromPayments(Payments payments) {
+        return PaymentsDetailResponseDto.builder()
+                .paymentsId(payments.getPaymentsId())
+                .storeId(payments.getOrder().getStore().getStoreId())
+                .orderId(payments.getOrder().getOrderId())
+                .email(payments.getUser().getEmail())
+                .storeName(payments.getOrder().getStore().getStoreName())
+                .orderMenuList(payments.getOrder().getOrderMenuList().stream()
+                        .map(OrderMenuListResponseDto::fromOrderMenu)
+                        .toList())
+                .amount(payments.getAmount())
+                .createdAt(payments.getCreatedAt())
+                .build();
     }
 }

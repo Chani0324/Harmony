@@ -71,7 +71,7 @@ public class OrderService {
 
         orderRepository.save(order);
 
-        return new OrderResponseDto(order);
+        return OrderResponseDto.fromOrder(order);
     }
 
     @Transactional(readOnly = true)
@@ -87,7 +87,7 @@ public class OrderService {
             orderList = orderRepository.findAllByDeletedFalse(pageable);
         }
 
-        return orderList.map(OrderResponseDto::new);
+        return orderList.map(OrderResponseDto::fromOrder);
     }
 
     @Transactional(readOnly = true)
@@ -97,7 +97,7 @@ public class OrderService {
         Page<Order> orderList;
         orderList = orderRepository.findOrderByStoreIdAndDeletedFalse(storeId, pageable);
 
-        return orderList.map(OrderResponseDto::new);
+        return orderList.map(OrderResponseDto::fromOrder);
     }
 
     public OrderDetailResponseDto getOrderByOrderId(UUID orderId, User user) {
@@ -112,7 +112,7 @@ public class OrderService {
                     -> new IllegalArgumentException("없는 주문 번호 입니다."));
         }
 
-        return new OrderDetailResponseDto(order);
+        return OrderDetailResponseDto.fromOrder(order);
     }
 
     @Transactional
@@ -121,7 +121,7 @@ public class OrderService {
                 () -> new IllegalArgumentException("없는 주문 번호입니다."));
 
         order.updateOrderStatus(orderStatusDto.getOrderStatus());
-        return new OrderResponseDto(order);
+        return OrderResponseDto.fromOrder(order);
     }
 
     @Transactional
@@ -157,12 +157,7 @@ public class OrderService {
         orderRepository.save(order);
         orderMenuRepository.saveAll(orderMenuList);
 
-        return new OrderResponseDto(order);
-    }
-
-    private void softDeleteOrderAndDeleteOrderMenu(Order order, String email) {
-        order.softDelete(email);
-        order.getOrderMenuList().forEach(order::removeOrderMenu);
+        return OrderResponseDto.fromOrder(order);
     }
 
     private Pageable getPageable(int page, int size, String sortBy, boolean isAsc) {

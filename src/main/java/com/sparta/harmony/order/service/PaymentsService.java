@@ -36,7 +36,7 @@ public class PaymentsService {
             paymentsList = paymentsRepository.findAllByDeletedFalse(pageable);
         }
 
-        return paymentsList.map(PaymentsResponseDto::new);
+        return paymentsList.map(PaymentsResponseDto::fromPayments);
     }
 
     @Transactional(readOnly = true)
@@ -45,7 +45,7 @@ public class PaymentsService {
         Page<Payments> paymentsList;
         paymentsList = paymentsRepository.findPaymentsByStoreIdAndDeletedFalse(storeId, pageable);
 
-        return paymentsList.map(PaymentsResponseDto::new);
+        return paymentsList.map(PaymentsResponseDto::fromPayments);
     }
 
     public PaymentsDetailResponseDto getPaymentsByPaymentsId(UUID paymentsId, User user) {
@@ -60,7 +60,7 @@ public class PaymentsService {
                     () -> new IllegalArgumentException("해당 결재 내역이 없습니다."));
         }
 
-        return new PaymentsDetailResponseDto(payments);
+        return PaymentsDetailResponseDto.fromPayments(payments);
     }
 
     private Pageable getPageable(int page, int size, String sortBy, boolean isAsc) {
