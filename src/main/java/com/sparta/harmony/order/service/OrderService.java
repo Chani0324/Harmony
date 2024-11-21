@@ -151,8 +151,6 @@ public class OrderService {
 
         order.softDelete(email);
         order.updateOrderStatus(OrderStatusEnum.CANCELED);
-        orderRepository.save(order);
-        orderMenuRepository.saveAll(orderMenuList);
 
         return OrderResponseDto.fromOrder(order);
     }
