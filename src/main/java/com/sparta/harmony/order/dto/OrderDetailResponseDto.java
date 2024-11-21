@@ -72,21 +72,23 @@ public class OrderDetailResponseDto {
     @JsonProperty("special_request")
     private String specialRequest;
 
-    public OrderDetailResponseDto(Order order) {
-        this.orderId = order.getOrderId();
-        this.userId = order.getUser().getUserId();
-        this.storeName = order.getStore().getStoreName();
-        this.totalAmount = order.getTotalAmount();
-        this.paymentsId = order.getPayments().getPaymentsId();
-        this.orderMenuList = order.getOrderMenuList().stream()
-                .map(OrderMenuListResponseDto::new)
-                .toList();
-        this.createdAt = order.getCreatedAt();
-        this.orderType = order.getOrderType();
-        this.orderStatus = order.getOrderStatus();
-        this.postcode = order.getAddress().getPostcode();
-        this.address = order.getAddress().getAddress();
-        this.detailAddress = order.getAddress().getDetailAddress();
-        this.specialRequest = order.getSpecialRequest();
+    public static OrderDetailResponseDto fromOrder(Order order) {
+        return OrderDetailResponseDto.builder()
+                .orderId(order.getOrderId())
+                .userId(order.getUser().getUserId())
+                .storeName(order.getStore().getStoreName())
+                .totalAmount(order.getTotalAmount())
+                .paymentsId(order.getPayments().getPaymentsId())
+                .orderMenuList(order.getOrderMenuList().stream()
+                        .map(OrderMenuListResponseDto::fromOrderMenu)
+                        .toList())
+                .createdAt(order.getCreatedAt())
+                .orderType(order.getOrderType())
+                .orderStatus(order.getOrderStatus())
+                .postcode(order.getAddress().getPostcode())
+                .address(order.getAddress().getAddress())
+                .detailAddress(order.getAddress().getDetailAddress())
+                .specialRequest(order.getSpecialRequest())
+                .build();
     }
 }

@@ -29,9 +29,11 @@ public class OrderMenuListResponseDto {
     @JsonProperty("quantity")
     private int quantity;
 
-    public OrderMenuListResponseDto(OrderMenu orderMenu) {
-        this.menuId = orderMenu.getMenu().getMenuId();
-        this.quantity = orderMenu.getQuantity();
-        this.menuName = orderMenu.getMenu().getName();
+    public static OrderMenuListResponseDto fromOrderMenu(OrderMenu orderMenu) {
+        return OrderMenuListResponseDto.builder()
+                .menuId(orderMenu.getMenu().getMenuId())
+                .menuName(orderMenu.getMenu().getName())
+                .quantity(orderMenu.getQuantity())
+                .build();
     }
 }

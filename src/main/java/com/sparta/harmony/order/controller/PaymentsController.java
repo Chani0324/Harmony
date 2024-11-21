@@ -32,7 +32,6 @@ public class PaymentsController {
     private final PaymentsService paymentsService;
     private final SuccessResponseHandler successResponseHandler;
 
-    // user 이상 사용 가능
     @Operation(summary = "결제 내역 조회", description = "결제 내역을 조회할 때 사용하는 API. User/Owner의 경우 자기 자신 결재 내역. manager/master의 경우 전체 조회")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "결제 내역 조회에 성공한 경우"),
@@ -53,7 +52,6 @@ public class PaymentsController {
     }
 
 
-    // owner 이상만 사용 가능
     @Operation(summary = "특정 가게 결제 내역 조회", description = "특정 가게 결제 내역을 조회할 때 사용하는 API. owner 이상만 사용 가능")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "결제 내역 조회에 성공한 경우"),
@@ -74,7 +72,6 @@ public class PaymentsController {
         return successResponseHandler.handlePageSuccess(HttpStatus.OK, "조회에 성공하였습니다.", paymentsResponseDto);
     }
 
-    // user 이상 사용 가능
     @Operation(summary = "결제 내역 상세 조회", description = "결제 내역을 상세 조회할 때 사용하는 API. user/owner의 경우 자신의 내역만, manager/master의 경우 모든 내역에 대해 조회 가능")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "결제 내역 조회에 성공한 경우"),

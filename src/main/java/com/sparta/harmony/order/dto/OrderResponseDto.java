@@ -50,15 +50,17 @@ public class OrderResponseDto {
     @JsonProperty("order_status")
     private OrderStatusEnum orderStatus;
 
-    public OrderResponseDto(Order order) {
-        this.orderId = order.getOrderId();
-        this.storeName = order.getStore().getStoreName();
-        this.totalAmount = order.getTotalAmount();
-        this.orderMenuList = order.getOrderMenuList().stream()
-                .map(OrderMenuListResponseDto::new)
-                .toList();
-        this.orderType = order.getOrderType();
-        this.orderStatus = order.getOrderStatus();
-        this.createdAt = order.getCreatedAt();
+    public static OrderResponseDto fromOrder(Order order) {
+        return OrderResponseDto.builder()
+                .orderId(order.getOrderId())
+                .storeName(order.getStore().getStoreName())
+                .totalAmount(order.getTotalAmount())
+                .orderMenuList(order.getOrderMenuList().stream()
+                        .map(OrderMenuListResponseDto::fromOrderMenu)
+                        .toList())
+                .orderType(order.getOrderType())
+                .orderStatus(order.getOrderStatus())
+                .createdAt(order.getCreatedAt())
+                .build();
     }
 }

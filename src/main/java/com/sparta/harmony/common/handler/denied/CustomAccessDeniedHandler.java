@@ -18,7 +18,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType("application/json; charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
-        // JSON 형태의 응답 본문 작성
         String jsonResponse = "{\"status\": 403, \"message\": \"접근 권한이 없습니다.\"}";
 
         PrintWriter out = response.getWriter();
