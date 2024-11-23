@@ -4,13 +4,15 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.harmony.order.entity.Order;
 import com.sparta.harmony.order.entity.QOrder;
 import com.sparta.harmony.order.entity.QOrderMenu;
+import com.sparta.harmony.order.entity.QPayments;
 import com.sparta.harmony.store.entity.QStore;
-import com.sparta.harmony.user.entity.User;
+import com.sparta.harmony.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -24,10 +26,9 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom{
         QStore store = QStore.store;
 
         var query = queryFactory.selectFrom(order)
-                .leftJoin(store).on(order.store.storeId.eq(store.storeId))
+                .join(store).on(order.store.storeId.eq(store.storeId))
                 .where(store.storeId.eq(storeId)
-                        .and(order.deleted.eq(false)))
-                .distinct();
+                        .and(order.deleted.eq(false)));
 
         long total = query.fetch().size();
 
@@ -39,43 +40,24 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom{
     }
 
     @Override
-    public Page<Order> findAllByUserAndDeletedFalseWithFetchJoin(User user, Pageable pageable) {
+    public List<Order> findAllWithFetchJoin() {
         QOrder order = QOrder.order;
         QOrderMenu orderMenu = QOrderMenu.orderMenu;
+        QStore store = QStore.store;
+        QUser user = QUser.user;
+        QPayments payments = QPayments.payments;
 
-        var query = queryFactory.selectFrom(order)
+        return queryFactory.selectFrom(order)
                 .leftJoin(order.orderMenuList, orderMenu)
                 .fetchJoin()
-                .where(order.user.userId.eq(user.getUserId())
-                        .and(order.deleted.eq(false)))
-                .distinct();
-
-        long total = query.fetch().size();
-
-        var results = query.offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .leftJoin(order.store, store)
+                .fetchJoin()
+                .leftJoin(order.user, user)
+                .fetchJoin()
+                .leftJoin(order.payments, payments)
+                .fetchJoin()
+                .distinct()
                 .fetch();
-
-        return new PageImpl<>(results, pageable, total);
-    }
-
-    @Override
-    public Page<Order> findAllDeletedFalseWithFetchJoin(Pageable pageable) {
-        QOrder order = QOrder.order;
-        QOrderMenu orderMenu = QOrderMenu.orderMenu;
-
-        var query = queryFactory.selectFrom(order)
-                .leftJoin(order.orderMenuList, orderMenu)
-                .where(order.deleted.eq(false))
-                .distinct();
-
-        long total = query.fetch().size();
-
-        var results = query.offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        return new PageImpl<>(results, pageable, total);
     }
 }
 

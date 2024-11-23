@@ -21,15 +21,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -74,9 +71,11 @@ public class OrderService {
 
         Role userRoleEnum = user.getRole();
 
+        orderRepository.findAllWithFetchJoin();
+
         Page<Order> orderList = isUserOrOwner(userRoleEnum)
-                ? orderRepository.findAllByUserAndDeletedFalseWithFetchJoin(user, pageable)
-                : orderRepository.findAllDeletedFalseWithFetchJoin(pageable);
+                ? orderRepository.findAllByUserAndDeletedFalse(user, pageable)
+                : orderRepository.findAllByDeletedFalse(pageable);
 
         return orderList.map(OrderResponseDto::orderFrom);
     }
