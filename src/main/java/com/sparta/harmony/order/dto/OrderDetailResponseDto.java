@@ -69,7 +69,7 @@ public class OrderDetailResponseDto {
     @JsonProperty("special_request")
     private String specialRequest;
 
-    public static OrderDetailResponseDto fromOrder(Order order) {
+    public static OrderDetailResponseDto orderFrom(Order order) {
         return OrderDetailResponseDto.builder()
                 .orderId(order.getOrderId())
                 .userId(order.getUser().getUserId())

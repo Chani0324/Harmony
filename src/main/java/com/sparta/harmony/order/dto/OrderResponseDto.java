@@ -36,8 +36,8 @@ public class OrderResponseDto {
     private List<OrderMenuListResponseDto> orderMenuList = new ArrayList<>();
 
     @Schema(description = "주문 일자", example = "2024-11-17T19:07:04.9538123")
-    @JsonProperty("order_date")
-    private LocalDateTime createdAt;
+    @JsonProperty("time")
+    private LocalDateTime time;
 
     @Schema(description = "주문 타입", example = "DELIVERY")
     @JsonProperty("order_type")
@@ -47,7 +47,7 @@ public class OrderResponseDto {
     @JsonProperty("order_status")
     private OrderStatusEnum orderStatus;
 
-    public static OrderResponseDto fromOrder(Order order) {
+    public static OrderResponseDto orderFrom(Order order) {
         return OrderResponseDto.builder()
                 .orderId(order.getOrderId())
                 .storeName(order.getStore().getStoreName())
@@ -57,7 +57,21 @@ public class OrderResponseDto {
                         .toList())
                 .orderType(order.getOrderType())
                 .orderStatus(order.getOrderStatus())
-                .createdAt(order.getCreatedAt())
+                .time(order.getCreatedAt())
+                .build();
+    }
+
+    public static OrderResponseDto orderTimeFrom(Order order) {
+        return OrderResponseDto.builder()
+                .orderId(order.getOrderId())
+                .storeName(order.getStore().getStoreName())
+                .totalAmount(order.getTotalAmount())
+                .orderMenuList(order.getOrderMenuList().stream()
+                        .map(OrderMenuListResponseDto::fromOrderMenu)
+                        .toList())
+                .orderType(order.getOrderType())
+                .orderStatus(order.getOrderStatus())
+                .time(LocalDateTime.now())
                 .build();
     }
 }

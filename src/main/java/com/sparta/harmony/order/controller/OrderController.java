@@ -44,7 +44,7 @@ public class OrderController {
                                                                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
         OrderResponseDto orderResponseDto = orderService.createOrder(orderRequestDto, userDetails.getUser());
 
-        return successResponseHandler.handleSuccess(HttpStatus.CREATED, "주문이 성공적으로 접수되었습니다.", orderResponseDto);
+        return successResponseHandler.handleSuccess(HttpStatus.CREATED, "주문이 신청되었습니다. 취소는 5분 이내에만 가능합니다.", orderResponseDto);
     }
 
     @Operation(summary = "주문 취소(soft delete)", description = "주문을 취소할 때 사용하는 API. USER의 경우 자신의 주문만 취소 가능.")
@@ -54,8 +54,8 @@ public class OrderController {
     })
     @Parameter(name = "orderId", description = "주문 ID", example = "92e09e78-d0fd-4fdd-b335-4971d501bf6c")
     @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_OWNER')  or hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_MASTER')")
-    @DeleteMapping("/orders/{orderId}")
-    public ResponseEntity<ApiResponseDto<OrderResponseDto>> cancelOrder(@PathVariable UUID orderId,
+    @DeleteMapping("/orders/softDelete/{orderId}")
+    public ResponseEntity<ApiResponseDto<OrderResponseDto>> softDeleteOrder(@PathVariable UUID orderId,
                                                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
         OrderResponseDto orderResponseDto = orderService.softDeleteOrder(orderId, userDetails.getUser());
 
@@ -131,5 +131,17 @@ public class OrderController {
         OrderResponseDto orderResponseDto = orderService.updateOrderStatus(orderId, orderStatusDto);
 
         return successResponseHandler.handleSuccess(HttpStatus.OK, "수정이 완료되었습니다.", orderResponseDto);
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER') or hasAuthority('ROLE_OWNER')  or hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_MASTER')")
+    @DeleteMapping("/orders/cancel/{orderId}")
+    public ResponseEntity<ApiResponseDto<OrderResponseDto>> cancelOrder(
+            @PathVariable UUID orderId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+
+        OrderResponseDto orderResponseDto = orderService.cancelOrder(orderId, userDetails.getUser());
+
+        return successResponseHandler.handleSuccess(HttpStatus.OK, "주문 취소가 완료되었습니다.", orderResponseDto);
     }
 }
