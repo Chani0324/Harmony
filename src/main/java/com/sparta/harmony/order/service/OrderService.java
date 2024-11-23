@@ -5,6 +5,7 @@ import com.sparta.harmony.order.dto.*;
 import com.sparta.harmony.order.entity.*;
 import com.sparta.harmony.order.repository.OrderMenuRepository;
 import com.sparta.harmony.order.repository.OrderRepository;
+import com.sparta.harmony.order.runnable.SecuredRunnable;
 import com.sparta.harmony.store.repository.StoreRepository;
 import com.sparta.harmony.user.entity.Address;
 import com.sparta.harmony.user.entity.Role;
@@ -15,17 +16,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
+@EnableScheduling
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -33,45 +41,31 @@ public class OrderService {
     private final StoreRepository storeRepository;
     private final UserRepository userRepository;
     private final OrderMenuRepository orderMenuRepository;
+    private final TaskScheduler taskScheduler;
 
-    @Transactional
+    private final ConcurrentHashMap<UUID, Order> pendingOrders = new ConcurrentHashMap<>();
+
     public OrderResponseDto createOrder(OrderRequestDto orderRequestDto, User user) {
 
         User userInfo = userRepository.findByEmail(user.getEmail()).orElseThrow(()
                 -> new IllegalArgumentException("유저 정보를 확인해 주세요"));
 
-        Address address;
-
-        if ((orderRequestDto.getAddress().isEmpty())
-                && (orderRequestDto.getDetailAddress().isEmpty())) {
-            if (orderRequestDto.getOrderType().equals(OrderTypeEnum.TAKEOUT)) {
-                UUID storeId = orderRequestDto.getStoreId();
-                Address storeAddress = storeRepository.findById(storeId).orElseThrow(
-                        () -> new IllegalArgumentException("가게 ID를 확인해주세요")).getAddress();
-
-                address = buildAddressUseAddress(storeAddress);
-            } else {
-                Address basicUserAddress = userInfo.getAddress();
-
-                address = buildAddressUseAddress(basicUserAddress);
-            }
-
-        } else {
-            address = buildAddressUseDto(orderRequestDto);
-        }
-
+        Address address = getAddress(orderRequestDto, userInfo);
         int total_price = getTotalPrice(orderRequestDto);
+
         Order order = buildOrder(orderRequestDto, address, userInfo, total_price);
         Payments payments = buildPayments(userInfo, total_price, order);
-        buildMenuList(orderRequestDto, order);
 
+        addMenuList(orderRequestDto, order);
         order.addPayments(payments);
         userInfo.addOrder(order);
         userInfo.addPayments(payments);
 
-        orderRepository.save(order);
+        pendingOrders.put(order.getOrderId(), order);
 
-        return OrderResponseDto.fromOrder(order);
+        // 결제 내역 확인, 주문상태(pending) 등등 확인 필요 로직이 필요할듯.
+        taskScheduler.schedule(new SecuredRunnable(() -> autoSaveOrder(order.getOrderId())), Instant.now().plusSeconds(300));
+        return OrderResponseDto.orderTimeFrom(order);
     }
 
     @Transactional(readOnly = true)
@@ -81,10 +75,10 @@ public class OrderService {
         Role userRoleEnum = user.getRole();
 
         Page<Order> orderList = isUserOrOwner(userRoleEnum)
-                ? orderRepository.findAllByUserAndDeletedFalse(user, pageable)
-                : orderRepository.findAllByDeletedFalse(pageable);
+                ? orderRepository.findAllByUserAndDeletedFalseWithFetchJoin(user, pageable)
+                : orderRepository.findAllDeletedFalseWithFetchJoin(pageable);
 
-        return orderList.map(OrderResponseDto::fromOrder);
+        return orderList.map(OrderResponseDto::orderFrom);
     }
 
     @Transactional(readOnly = true)
@@ -93,7 +87,7 @@ public class OrderService {
         Pageable pageable = getPageable(page, size, sortBy, isAsc);
         Page<Order> orderList = orderRepository.findOrderByStoreIdAndDeletedFalse(storeId, pageable);
 
-        return orderList.map(OrderResponseDto::fromOrder);
+        return orderList.map(OrderResponseDto::orderFrom);
     }
 
     public OrderDetailResponseDto getOrderByOrderId(UUID orderId, User user) {
@@ -108,7 +102,7 @@ public class OrderService {
                     -> new IllegalArgumentException("없는 주문 번호 입니다."));
         }
 
-        return OrderDetailResponseDto.fromOrder(order);
+        return OrderDetailResponseDto.orderFrom(order);
     }
 
     @Transactional
@@ -117,20 +111,45 @@ public class OrderService {
                 () -> new IllegalArgumentException("없는 주문 번호입니다."));
 
         order.updateOrderStatus(orderStatusDto.getOrderStatus());
-        return OrderResponseDto.fromOrder(order);
+        return OrderResponseDto.orderFrom(order);
+    }
+
+    public OrderResponseDto cancelOrder(UUID orderId, User user) {
+        Optional<Order> optionalOrder = orderRepository.findById(orderId);
+        Role userRoleEnum = user.getRole();
+        UUID userId = user.getUserId();
+
+        if (optionalOrder.isPresent()) {
+            if (isUser(userRoleEnum)) {
+                UUID orderedUserId = optionalOrder.get().getUser().getUserId();
+
+                if (!userId.equals(orderedUserId)) {
+                    throw new IllegalArgumentException("다른 유저의 주문은 취소할 수 없습니다.");
+                }
+            }
+            throw new IllegalArgumentException("주문이 5분이 경과되어 더이상 취소가 불가능합니다.");
+        }
+
+        Order orderInThread = pendingOrders.get(orderId);
+
+        if (orderInThread == null) {
+            throw new IllegalArgumentException("해당 주문이 없습니다.");
+        } else {
+            if (isUser(userRoleEnum)) {
+                UUID orderUserId = orderInThread.getUser().getUserId();
+
+                if (!userId.equals(orderUserId)) {
+                    throw new IllegalArgumentException("다른 유저의 주문은 취소할 수 없습니다.");
+                }
+                pendingOrders.remove(orderId);
+            }
+        }
+        return OrderResponseDto.orderTimeFrom(orderInThread);
     }
 
     @Transactional
     public OrderResponseDto softDeleteOrder(UUID orderId, User user) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
-
-        LocalDateTime orderTime = order.getCreatedAt();
-        LocalDateTime now = LocalDateTime.now();
-        long secondDiff = Duration.between(orderTime, now).getSeconds();
-
-        if (secondDiff >= 300) {
-            throw new IllegalArgumentException("주문 시간이 5분이 넘어 취소가 불가능합니다.");
-        }
 
         Role userRoleEnum = user.getRole();
         String email = user.getEmail();
@@ -150,9 +169,37 @@ public class OrderService {
         }
 
         order.softDelete(email);
-        order.updateOrderStatus(OrderStatusEnum.CANCELED);
 
-        return OrderResponseDto.fromOrder(order);
+        return OrderResponseDto.orderFrom(order);
+    }
+
+    private void autoSaveOrder(UUID orderId) {
+        Order order = pendingOrders.remove(orderId);
+        if (order != null) {
+            orderRepository.save(order);
+        }
+    }
+
+    private Address getAddress(OrderRequestDto orderRequestDto, User userInfo) {
+        Address address;
+        if ((orderRequestDto.getAddress().isEmpty())
+                && (orderRequestDto.getDetailAddress().isEmpty())) {
+            if (orderRequestDto.getOrderType().equals(OrderTypeEnum.TAKEOUT)) {
+                UUID storeId = orderRequestDto.getStoreId();
+                Address storeAddress = storeRepository.findById(storeId).orElseThrow(
+                        () -> new IllegalArgumentException("가게 ID를 확인해주세요")).getAddress();
+
+                address = buildAddressUseAddress(storeAddress);
+            } else {
+                Address basicUserAddress = userInfo.getAddress();
+
+                address = buildAddressUseAddress(basicUserAddress);
+            }
+
+        } else {
+            address = buildAddressUseDto(orderRequestDto);
+        }
+        return address;
     }
 
     private boolean isUser(Role userRoleEnum) {
@@ -169,7 +216,7 @@ public class OrderService {
         return PageRequest.of(page, size, sort);
     }
 
-    private void buildMenuList(OrderRequestDto orderRequestDto, Order order) {
+    private void addMenuList(OrderRequestDto orderRequestDto, Order order) {
         for (OrderMenuListRequestDto menuItem : orderRequestDto.getOrderMenuList()) {
             OrderMenu orderMenu = OrderMenu.builder()
                     .quantity(menuItem.getQuantity())
@@ -206,6 +253,7 @@ public class OrderService {
 
     private Order buildOrder(OrderRequestDto orderRequestDto, Address address, User userInfo, int total_price) {
         return Order.builder()
+                .orderId(UUID.randomUUID())
                 .orderStatus(OrderStatusEnum.PENDING)
                 .orderType(orderRequestDto.getOrderType())
                 .specialRequest(orderRequestDto.getSpecialRequest())

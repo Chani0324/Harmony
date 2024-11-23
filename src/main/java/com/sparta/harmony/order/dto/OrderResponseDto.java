@@ -5,10 +5,7 @@ import com.sparta.harmony.order.entity.Order;
 import com.sparta.harmony.order.entity.OrderStatusEnum;
 import com.sparta.harmony.order.entity.OrderTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,9 +14,9 @@ import java.util.UUID;
 
 @Schema(description = "주문 성공 응답 Dto")
 @Getter
-@NoArgsConstructor
 @Builder
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderResponseDto {
 
     @Schema(description = "주문 ID", example = "fd7e91c0-8a1c-4706-9eb3-0b0ce4d5184b")
@@ -39,8 +36,8 @@ public class OrderResponseDto {
     private List<OrderMenuListResponseDto> orderMenuList = new ArrayList<>();
 
     @Schema(description = "주문 일자", example = "2024-11-17T19:07:04.9538123")
-    @JsonProperty("order_date")
-    private LocalDateTime createdAt;
+    @JsonProperty("time")
+    private LocalDateTime time;
 
     @Schema(description = "주문 타입", example = "DELIVERY")
     @JsonProperty("order_type")
@@ -50,7 +47,7 @@ public class OrderResponseDto {
     @JsonProperty("order_status")
     private OrderStatusEnum orderStatus;
 
-    public static OrderResponseDto fromOrder(Order order) {
+    public static OrderResponseDto orderFrom(Order order) {
         return OrderResponseDto.builder()
                 .orderId(order.getOrderId())
                 .storeName(order.getStore().getStoreName())
@@ -60,7 +57,21 @@ public class OrderResponseDto {
                         .toList())
                 .orderType(order.getOrderType())
                 .orderStatus(order.getOrderStatus())
-                .createdAt(order.getCreatedAt())
+                .time(order.getCreatedAt())
+                .build();
+    }
+
+    public static OrderResponseDto orderTimeFrom(Order order) {
+        return OrderResponseDto.builder()
+                .orderId(order.getOrderId())
+                .storeName(order.getStore().getStoreName())
+                .totalAmount(order.getTotalAmount())
+                .orderMenuList(order.getOrderMenuList().stream()
+                        .map(OrderMenuListResponseDto::fromOrderMenu)
+                        .toList())
+                .orderType(order.getOrderType())
+                .orderStatus(order.getOrderStatus())
+                .time(LocalDateTime.now())
                 .build();
     }
 }
