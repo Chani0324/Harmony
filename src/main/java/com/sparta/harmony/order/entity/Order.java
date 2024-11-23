@@ -4,6 +4,7 @@ import com.sparta.harmony.store.entity.Store;
 import com.sparta.harmony.user.entity.Address;
 import com.sparta.harmony.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,8 @@ import java.util.UUID;
 @Getter
 @Table(name = "p_order")
 @DynamicUpdate
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class Order extends Timestamped {
 
@@ -25,7 +28,6 @@ public class Order extends Timestamped {
      */
     @Id
     @Column(name = "order_id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID orderId;
 
     @Column(name = "order_status", nullable = false)
@@ -88,20 +90,6 @@ public class Order extends Timestamped {
     /**
      * 생성자 - 약속된 형태로만 생성가능하도록 합니다.
      */
-    @Builder
-    public Order(User user, Store store, OrderStatusEnum orderStatus,
-                 OrderTypeEnum orderType, String specialRequest,
-                 int totalAmount, Address address, List<OrderMenu> orderMenuList) {
-
-        this.user = user;
-        this.store = store;
-        this.orderStatus = orderStatus;
-        this.orderType = orderType;
-        this.specialRequest = specialRequest;
-        this.totalAmount = totalAmount;
-        this.address = address;
-        this.orderMenuList = orderMenuList;
-    }
 
 
     /**
