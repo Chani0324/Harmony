@@ -81,8 +81,8 @@ public class OrderService {
         Role userRoleEnum = user.getRole();
 
         Page<Order> orderList = isUserOrOwner(userRoleEnum)
-                ? orderRepository.findAllByUserAndDeletedFalse(user, pageable)
-                : orderRepository.findAllByDeletedFalse(pageable);
+                ? orderRepository.findAllByUserAndDeletedFalseWithFetchJoin(user, pageable)
+                : orderRepository.findAllDeletedFalseWithFetchJoin(pageable);
 
         return orderList.map(OrderResponseDto::fromOrder);
     }

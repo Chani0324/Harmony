@@ -14,8 +14,8 @@ import java.util.UUID;
 
 @Schema(description = "주문 성공 응답 Dto")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderResponseDto {
 
