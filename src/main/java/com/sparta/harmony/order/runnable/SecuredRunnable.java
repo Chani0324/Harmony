@@ -18,7 +18,7 @@ public class SecuredRunnable implements Runnable {
             SecurityContextHolder.setContext(securityContext);
             task.run();
         } finally {
-            SecurityContextHolder.clearContext(); // 필요에 따라 컨텍스트 정리
+            SecurityContextHolder.clearContext();
         }
     }
 }
